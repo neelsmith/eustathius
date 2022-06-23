@@ -38,7 +38,8 @@ greektext = read(f) |> parsexml |> root  |> simpletext
 tkns = tokenize(greektext, o)
 lex = filter(t -> t.tokencategory == LexicalToken(), tkns) 
 lexstrs = map(lex) do t
-    t.text |> lowercase |> nfkc
+    cleaner = t.text |> lowercase |> nfkc
+    PolytonicGreek.flipaccent(cleaner, o)
 end
 
 grouped = group(lexstrs)
@@ -50,3 +51,8 @@ for term in keys(grouped)
 end
 
 sorted = sort(counts, by = pr -> pr[2], rev = true)
+
+wordlist = map(pr -> pr[1], sorted)
+open("wordlist.txt", "w") do io
+    write(io, join(wordlist,"\n"))
+end
