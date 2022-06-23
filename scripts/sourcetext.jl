@@ -2,9 +2,7 @@ using EzXML
 using PolytonicGreek, Orthography
 using SplitApplyCombine
 
-"""Skip `ref` elements
-$(SIGNATURES)
-"""
+
 function simpletext(n::EzXML.Node, accum = "")
 	rslts = [accum]
 	if n.type == EzXML.ELEMENT_NODE 
@@ -31,11 +29,22 @@ function simpletext(n::EzXML.Node, accum = "")
 end
 
 
-o = literaryGreek()
-f = "books/bk21.xml"
-greektext = read(f) |> parsexml |> root  |> simpletext
 
-tkns = tokenize(greektext, o)
+
+teins = "http://www.tei-c.org/ns/1.0"
+
+o = literaryGreek()
+f = "xmlsrc/tlg4083.tlg001.eoic-ed2VALK-grc.xml"
+docroot = read(bigf) |> parsexml |> root
+
+lines = findall("//tei:l", docroot, ["tei" => teins])
+textlines = map(l -> simpletext(l), lines)
+alltext = join(textlines, "\n")
+
+
+
+
+tkns = tokenize(alltext, o)
 lex = filter(t -> t.tokencategory == LexicalToken(), tkns) 
 lexstrs = map(lex) do t
     cleaner = t.text |> lowercase |> nfkc
@@ -53,12 +62,44 @@ end
 sorted = sort(counts, by = pr -> pr[2], rev = true)
 
 wordlist = map(pr -> pr[1], sorted)
-open("vocablist.txt", "w") do io
+open("vocablist-all.txt", "w") do io
     write(io, join(wordlist,"\n"))
 end
 
 
 countstrings = map(pr -> string(pr[1], " ", pr[2]), sorted)
-open("termcounts-21.txt", "w") do io
+open("termcounts-all.txt", "w") do io
     write(io, join(countstrings, "\n"))
 end
+
+
+# Verbal adjective ratio!
+#=
+julia> vadjs = filter(sorted) do pro
+       endswith(pro[1], "τέον")
+       end
+
+julia> vadjcount = map(vadjs) do pr
+       pr[2]
+       end |> sum
+2498
+
+julia> vocabcount = map(sorted) do pr
+       pr[2]
+       end |> sum
+989463
+
+julia> vadjcount / vocabcount
+0.00252460172841228
+
+julia> vocabcount
+989463
+
+julia> vocabcount / 989
+1000.4681496461072
+
+julia> vadjcount / 989
+2.525783619817998
+
+
+=#
