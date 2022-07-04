@@ -29,7 +29,7 @@ function simpletext(n::EzXML.Node, accum = "")
     else
         throw(DomainError("Unrecognized node type for node $(n.type)"))
 	end
-	catted = join(rslts,"")
+	catted = join(rslts," ")
     replace(catted, "\n" => " ") |> strip
 end
 
