@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.8
 
 using Markdown
 using InteractiveUtils
@@ -48,10 +48,6 @@ begin
 	md"""(*Unhide this cell to see or modify your Julia environment*) """
 end
 
-# ╔═╡ 34b57390-ded2-4b36-a77a-9a8a88048b0c
-rescale(A; dims=1) = (A .- mean(A, dims=dims)) ./ max.(std(A, dims=dims), eps())
-
-
 # ╔═╡ 550e7828-af29-471a-ac08-bb886c3cafbb
 md"""
 # Topic modeling the Gettysburg Address
@@ -66,17 +62,22 @@ md"""
 See the [documentation](https://github.com/ericproffitt/TopicModelsVB.jl)
 """
 
+# ╔═╡ d9ff019a-f51d-4354-9d11-9cd6fc7c7a1a
+md"""
+!!! note "Settings for model"
+"""
+
 # ╔═╡ 1db8ff3b-a0d8-4c35-b76c-fef53c444c25
 md"""*Number of topics*: $(@bind n confirm(Slider(2:20, default=5, show_value = true))) *Iterations* $(@bind iters confirm(Slider(100:50:1000, default=200, show_value = true)))
 """
 
 # ╔═╡ 793a5c02-28cc-43aa-a1ac-2e5ccf0b6f16
 md"""
-Computing models for **$(n) topics**, computed with up to **$(iters) iterations**
+*Computing models for **$(n) topics**, computed with up to **$(iters) iterations**.*
 """
 
 # ╔═╡ 19857007-7ca3-44cf-8de9-cd6640a0b0ed
-md"""## Results: CTM"""
+md"""## Results: fCTM algorithm"""
 
 # ╔═╡ 836a2093-fdeb-4aea-9c8a-c1d48fd76565
 md"""
@@ -118,6 +119,10 @@ md"""
 !!! note "Computing the model"
 """
 
+# ╔═╡ 34b57390-ded2-4b36-a77a-9a8a88048b0c
+rescale(A; dims=1) = (A .- mean(A, dims=dims)) ./ max.(std(A, dims=dims), eps())
+
+
 # ╔═╡ df489afb-b545-45f2-81c8-90b494ca4e5e
 md"""
 
@@ -141,10 +146,20 @@ tmc = tmcorpus(corpus, ortho)
 begin
 	ctm_model = fCTM(tmc, n)
 	train!(ctm_model, tol = 0, checkelbo = Inf)
+	ctm_model
 end
 
 # ╔═╡ 4dc09c14-d86e-4f8f-a037-48933a06d397
 showtopics(ctm_model, cols = n, terms_n)
+
+# ╔═╡ 2d21ff74-9eab-4566-a41e-a49907f1652c
+ctm_rescaled = rescale(ctm_model.beta, dims=1);
+
+# ╔═╡ 329777a9-5a5a-491d-98f7-5b1cabf32445
+ctm_reduced = tsne(transpose(ctm_rescaled))
+
+# ╔═╡ 647a5abc-1b6e-4440-974f-b29db05a5e4d
+scatter(ctm_reduced[:,1], ctm_reduced[:,2])
 
 # ╔═╡ b8039ca9-8078-44fc-8ef7-932a55c036f8
 # ╠═╡ show_logs = false
@@ -154,63 +169,56 @@ begin
 	model
 end
 
-# ╔═╡ 96b9a0f2-bd4b-444c-b662-3f026c93373a
-model
-
-# ╔═╡ 541112b7-eb9d-4428-b6c8-154bc0f3c54b
-model.N
-
-# ╔═╡ 71ab45cd-9dee-43d1-aafd-aff37b7bfbfd
-X = rescale(model.beta, dims=1);
-
-# ╔═╡ 4c34a448-fd04-4bcc-82d5-5258d2e8d553
-Y = tsne(X)
-
-# ╔═╡ 5393cdc3-f6eb-40a6-9054-160f649d3459
-scatter(Y[:,1], Y[:,2])
-
 # ╔═╡ 81fbe20a-75e4-4c20-8aab-aabe20f0e224
 showtopics(model, cols = n, terms_n)
 
-# ╔═╡ 1f789e6a-411b-4943-8e67-6661799ae167
-model.beta
-
 # ╔═╡ 7d7cbbce-da6b-4f78-9ba9-41ebcbc16efb
 topicdist(model, doc_idx)
+
+# ╔═╡ 71ab45cd-9dee-43d1-aafd-aff37b7bfbfd
+lda_rescaled = rescale(model.beta, dims=1);
+
+# ╔═╡ 4c34a448-fd04-4bcc-82d5-5258d2e8d553
+# ╠═╡ show_logs = false
+lda_reduced = tsne(transpose(lda_rescaled))
+
+# ╔═╡ 5393cdc3-f6eb-40a6-9054-160f649d3459
+scatter(lda_reduced[:,1], lda_reduced[:,2])
 
 # ╔═╡ ac9f80bc-63dc-4982-a292-02afa28613ec
 showtitles(tmc,[1,5, 9, 13, 17])
 
 # ╔═╡ Cell order:
-# ╠═d6b5324e-fc7b-11ec-31b9-49b421a1a9b9
-# ╠═96b9a0f2-bd4b-444c-b662-3f026c93373a
-# ╠═541112b7-eb9d-4428-b6c8-154bc0f3c54b
-# ╠═34b57390-ded2-4b36-a77a-9a8a88048b0c
-# ╠═71ab45cd-9dee-43d1-aafd-aff37b7bfbfd
-# ╠═4c34a448-fd04-4bcc-82d5-5258d2e8d553
-# ╠═5393cdc3-f6eb-40a6-9054-160f649d3459
+# ╟─d6b5324e-fc7b-11ec-31b9-49b421a1a9b9
 # ╟─550e7828-af29-471a-ac08-bb886c3cafbb
 # ╟─8dca993e-5777-4f19-93e1-c4732c27c000
+# ╟─d9ff019a-f51d-4354-9d11-9cd6fc7c7a1a
 # ╟─1db8ff3b-a0d8-4c35-b76c-fef53c444c25
 # ╟─793a5c02-28cc-43aa-a1ac-2e5ccf0b6f16
 # ╟─19857007-7ca3-44cf-8de9-cd6640a0b0ed
-# ╠═be308e45-b019-4566-8307-c48f64e84691
-# ╠═4dc09c14-d86e-4f8f-a037-48933a06d397
+# ╟─be308e45-b019-4566-8307-c48f64e84691
+# ╟─4dc09c14-d86e-4f8f-a037-48933a06d397
+# ╠═647a5abc-1b6e-4440-974f-b29db05a5e4d
 # ╟─836a2093-fdeb-4aea-9c8a-c1d48fd76565
-# ╠═b8039ca9-8078-44fc-8ef7-932a55c036f8
+# ╟─b8039ca9-8078-44fc-8ef7-932a55c036f8
 # ╟─ae15ed3b-e72a-445c-aba8-81c73ca15952
 # ╟─946877bf-adc6-484a-91a8-b3844e6fd38a
 # ╠═81fbe20a-75e4-4c20-8aab-aabe20f0e224
-# ╠═1f789e6a-411b-4943-8e67-6661799ae167
+# ╟─5393cdc3-f6eb-40a6-9054-160f649d3459
 # ╟─591a6683-128a-4774-9be3-72d8b77ec254
 # ╟─81cb7a24-fc9e-4af4-af09-5a45eb655da2
 # ╟─ac9f80bc-63dc-4982-a292-02afa28613ec
 # ╟─b8792a49-ef39-40e0-ad31-2cd2b914c1bc
-# ╠═7d7cbbce-da6b-4f78-9ba9-41ebcbc16efb
+# ╟─7d7cbbce-da6b-4f78-9ba9-41ebcbc16efb
 # ╟─4745008a-95ab-4258-a192-91cd0cd58de1
 # ╟─e3ee28c4-61e6-4cf2-8b1b-73eb0085a674
+# ╟─34b57390-ded2-4b36-a77a-9a8a88048b0c
+# ╟─2d21ff74-9eab-4566-a41e-a49907f1652c
+# ╟─329777a9-5a5a-491d-98f7-5b1cabf32445
+# ╟─71ab45cd-9dee-43d1-aafd-aff37b7bfbfd
+# ╟─4c34a448-fd04-4bcc-82d5-5258d2e8d553
 # ╟─df489afb-b545-45f2-81c8-90b494ca4e5e
-# ╠═2c7c5b6d-696b-42c1-aed6-ddca004ba71b
-# ╠═1cd69094-b285-498e-bcd9-49a01a073180
-# ╠═4369945b-57aa-445b-bfe4-1d76af7e49e1
-# ╠═4e38d01c-4d41-4b94-a9a7-d2ef090b9804
+# ╟─2c7c5b6d-696b-42c1-aed6-ddca004ba71b
+# ╟─1cd69094-b285-498e-bcd9-49a01a073180
+# ╟─4369945b-57aa-445b-bfe4-1d76af7e49e1
+# ╟─4e38d01c-4d41-4b94-a9a7-d2ef090b9804
