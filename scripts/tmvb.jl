@@ -19,3 +19,6 @@ n = 5
 iters = 250
 model = LDA(tmc, n)
 train!(model, iter=iters)
+
+terms_n = 15
+showtopics(model, cols = n, terms_n)
