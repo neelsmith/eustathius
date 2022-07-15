@@ -44,6 +44,12 @@ begin
 
 	Pkg.add("Statistics")
 	using Statistics
+
+	Pkg.add("SplitApplyCombine")
+	using SplitApplyCombine
+
+	Pkg.add("Kanones")
+	using Kanones
 	
 	Pkg.add("PlutoUI")
 	using PlutoUI
@@ -65,6 +71,16 @@ md"""
 md"""*Number of topics*: $(@bind n confirm(Slider(2:20, default=12, show_value = true))) *Iterations* $(@bind iters confirm(Slider(100:50:1000, default=200, show_value = true)))
 """
 
+# ╔═╡ 88c105d9-471d-48c7-9661-13503783ef8d
+md"""
+*Number of stop-word candidates to review* $(@bind top_n confirm(Slider(20:500, default = 25, show_value = true)))
+"""
+
+# ╔═╡ c1a7755b-c100-49ec-9a20-5b34ebe7a7f1
+md"""
+*Any **unchecked** terms will be treated as stop words.  **Check** any terms to include in the topic model.*
+"""
+
 # ╔═╡ c67e13cc-e823-4052-a04c-6916e7649f0a
 md"""
 *Computing models for **$(n) topics**, computed with up to **$(iters) iterations**.*
@@ -72,7 +88,7 @@ md"""
 
 # ╔═╡ 1c306e50-ec4c-4201-ba25-e3c6d2f3a633
 md"""!!! note "Size of corpus"
-    Choose `0` to include all comments in the corpus; otherwise, set the number of passages to model.
+    Choose `0` to include *all* passages in the corpus; otherwise, set a number of passages to model.
 """
 
 # ╔═╡ ff168b8e-84b4-4b7d-9dfa-9ef48f89747d
@@ -86,6 +102,18 @@ md"""## Topic definitions"""
 # ╔═╡ 54d1fe06-1ce6-4235-b89e-cb9236b0406d
 md"""
 *Number of terms to show* $(@bind terms_n Slider(5:50, default=10, show_value = true))
+"""
+
+# ╔═╡ 2a7a5ebf-f933-4db8-88b9-adcd8c4a1b64
+html"""
+<br/><br/><br/><br/><br/>
+<hr/>
+<i>You can ignore content below here</i>
+"""
+
+# ╔═╡ ae80ab9b-b002-4a38-a4a4-cca9e3284460
+md"""
+!!! note "The lexicon"
 """
 
 # ╔═╡ 23b4c746-d640-4be8-84dc-503b3d081d1f
@@ -112,6 +140,50 @@ end |> CitableTextCorpus
 # ╔═╡ 65240de4-2af4-45ef-834c-df6bc21c9874
 ortho  = literaryGreek()
 
+# ╔═╡ 1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
+tkns = begin
+	alltokens = tokenize(normalized, ortho)
+	filter(alltokens) do t
+		t[2] == LexicalToken()
+	end
+end
+
+# ╔═╡ 831ef9d5-e70b-4b06-a250-b7cba1b12337
+ sorted =  begin
+ 	
+	lex = filter(tkns) do tpair
+		tpair[2] == LexicalToken()
+	end
+ 	termdict = map(lex) do t
+       t[1].text |> lowercase
+	end |> group
+	counts = []
+	for k in keys(termdict)
+		push!(counts, (k, length(termdict[k])))
+	end
+	sort(counts, by = pr -> pr[2], rev = true)
+ end
+
+# ╔═╡ 9d83f24b-b4bb-452c-8a77-72591a2edb83
+begin
+	most_freq = map(sorted[1:top_n]) do pr
+		pr[1]
+	end
+	
+	@bind keepers MultiCheckBox(most_freq)
+end
+
+# ╔═╡ a5d8aad0-15dd-4d50-8b58-15e604c6424f
+stopwords = begin
+	stopterms = map(sorted[1:top_n]) do termpair
+		termpair[1]
+	end
+	finalstops = filter(stopterms) do stopterm
+		! (stopterm in keepers)
+	end
+	finalstops
+end
+
 # ╔═╡ 08028ea4-725e-4b74-8689-2613024f94d8
 # ╠═╡ show_logs = false
 tmc = begin
@@ -121,13 +193,35 @@ end
 
 # ╔═╡ 02290f23-b89b-49f9-8096-99f40017f01a
 begin
-	ctm_model = fCTM(tmc, n)
-	train!(ctm_model, tol = 0, checkelbo = Inf)
-	ctm_model
+	model = fCTM(tmc, n)
+	train!(model, tol = 0, checkelbo = Inf)
+	model
 end
 
-# ╔═╡ 6cb689f8-d5da-4d1d-86dd-99a55264672a
-showtopics(ctm_model, cols = n, terms_n)
+# ╔═╡ d430eb4b-c9df-4e5a-a9c1-5b426a01eabc
+begin
+	rows = []
+	hdrs = ["Topic"]
+	for hidx in 1:terms_n
+		push!(hdrs, "Term $(hidx)")
+	end
+	push!(rows, "| " * join(hdrs, " | " ) * " |")
+
+	formatspec = [" --- "]
+	for fidx in 1:terms_n
+		push!(formatspec, " --- ")
+	end
+	push!(rows, "| " * join(formatspec, " | " ) * " |")
+	
+	for (r,row) in enumerate(model.topics)
+		colvals = ["**Topic $r**"]
+       	for c in 1:terms_n
+			push!(colvals, model.corp.vocab[model.topics[r][c]])
+		end
+		push!(rows, "| " * join(colvals, " | ") * " |" )
+    end
+	join(rows, "\n") |> Markdown.parse
+end
 
 # ╔═╡ 93e85656-ff97-44b2-b93e-8e6aef044d46
 md"""
@@ -139,7 +233,7 @@ md"""
 rescale(A; dims=1) = (A .- mean(A, dims=dims)) ./ max.(std(A, dims=dims), eps())
 
 # ╔═╡ 92166f58-0ce5-4434-9567-7a3e8375570a
-rescaled = rescale(ctm_model.beta, dims=1);
+rescaled = rescale(model.beta, dims=1);
 
 # ╔═╡ e2be100d-debe-4d34-95d6-2e9c18b34193
 # ╠═╡ show_logs = false
@@ -153,6 +247,9 @@ scatter(reduced[:,1], reduced[:,2])
 # ╟─a54a1bb6-fd70-11ec-2886-cdc4fb2e0c98
 # ╟─a24725e3-182b-4517-97da-33920b4fde27
 # ╟─34b24086-6510-4915-a039-31685a4c00a1
+# ╟─88c105d9-471d-48c7-9661-13503783ef8d
+# ╟─c1a7755b-c100-49ec-9a20-5b34ebe7a7f1
+# ╟─9d83f24b-b4bb-452c-8a77-72591a2edb83
 # ╟─c67e13cc-e823-4052-a04c-6916e7649f0a
 # ╟─1c306e50-ec4c-4201-ba25-e3c6d2f3a633
 # ╟─dbf8e673-a705-4dd0-a5ba-23e28a2065a9
@@ -160,9 +257,14 @@ scatter(reduced[:,1], reduced[:,2])
 # ╟─02290f23-b89b-49f9-8096-99f40017f01a
 # ╟─39a33cee-b384-4a5c-bfd6-1c66d3c27956
 # ╟─54d1fe06-1ce6-4235-b89e-cb9236b0406d
-# ╟─6cb689f8-d5da-4d1d-86dd-99a55264672a
+# ╟─d430eb4b-c9df-4e5a-a9c1-5b426a01eabc
 # ╠═df4681eb-ce41-4676-b54d-c88ae23ab680
+# ╟─2a7a5ebf-f933-4db8-88b9-adcd8c4a1b64
+# ╟─ae80ab9b-b002-4a38-a4a4-cca9e3284460
+# ╟─a5d8aad0-15dd-4d50-8b58-15e604c6424f
+# ╟─831ef9d5-e70b-4b06-a250-b7cba1b12337
 # ╟─23b4c746-d640-4be8-84dc-503b3d081d1f
+# ╟─1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
 # ╟─08028ea4-725e-4b74-8689-2613024f94d8
 # ╟─48b10dd6-f1c8-424e-acfd-b67292620977
 # ╟─005fba72-a05f-4de0-996b-5187b6d992b2

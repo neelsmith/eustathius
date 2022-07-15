@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.8
 
 using Markdown
 using InteractiveUtils
@@ -154,12 +154,20 @@ corpusurl = "https://raw.githubusercontent.com/neelsmith/CitableCorpusAnalysis.j
 # ╔═╡ 4369945b-57aa-445b-bfe4-1d76af7e49e1
 corpus = fromcex(corpusurl, CitableTextCorpus, UrlReader)
 
+# ╔═╡ 07c82cb4-bcfd-4f26-8490-ab3383f9e004
+normalized = begin
+	map(corpus) do rawpsg
+		CitablePassage(rawpsg.urn, lowercase(rawpsg.text))
+	end |> CitableTextCorpus
+end
+
+
 # ╔═╡ 4e38d01c-4d41-4b94-a9a7-d2ef090b9804
 ortho = simpleAscii()
 
 # ╔═╡ cab1b3d2-8232-495a-a2cd-462c6ca48955
 tkns = begin
-	alltokens = tokenize(corpus, ortho)
+	alltokens = tokenize(normalized, ortho)
 	filter(alltokens) do t
 		t[2] == LexicalToken()
 	end
@@ -319,6 +327,7 @@ scatter(reduced[:,1], reduced[:,2])
 # ╠═329777a9-5a5a-491d-98f7-5b1cabf32445
 # ╟─df489afb-b545-45f2-81c8-90b494ca4e5e
 # ╟─cab1b3d2-8232-495a-a2cd-462c6ca48955
+# ╟─07c82cb4-bcfd-4f26-8490-ab3383f9e004
 # ╟─2c7c5b6d-696b-42c1-aed6-ddca004ba71b
 # ╟─1cd69094-b285-498e-bcd9-49a01a073180
 # ╟─4369945b-57aa-445b-bfe4-1d76af7e49e1
