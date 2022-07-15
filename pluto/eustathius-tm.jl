@@ -134,7 +134,7 @@ md"""*Comments to include*: $(@bind n_psgs confirm(Slider(0:length(corpus.passag
 
 # ╔═╡ 1f659cb3-846a-4104-a602-7aab315dc050
 normalized = map(corpus) do rawpsg
-	CitablePassage(rawpsg.urn, lowercase(rawpsg.text))
+	CitablePassage(rawpsg.urn, knormal(rawpsg.text))
 end |> CitableTextCorpus
 
 # ╔═╡ 65240de4-2af4-45ef-834c-df6bc21c9874
@@ -264,8 +264,8 @@ scatter(reduced[:,1], reduced[:,2])
 # ╟─a5d8aad0-15dd-4d50-8b58-15e604c6424f
 # ╟─831ef9d5-e70b-4b06-a250-b7cba1b12337
 # ╟─23b4c746-d640-4be8-84dc-503b3d081d1f
-# ╟─1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
-# ╟─08028ea4-725e-4b74-8689-2613024f94d8
+# ╠═1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
+# ╠═08028ea4-725e-4b74-8689-2613024f94d8
 # ╟─48b10dd6-f1c8-424e-acfd-b67292620977
 # ╟─005fba72-a05f-4de0-996b-5187b6d992b2
 # ╟─1f659cb3-846a-4104-a602-7aab315dc050
