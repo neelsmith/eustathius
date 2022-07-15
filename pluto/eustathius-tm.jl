@@ -73,7 +73,7 @@ md"""*Number of topics*: $(@bind n confirm(Slider(2:20, default=12, show_value =
 
 # ╔═╡ 88c105d9-471d-48c7-9661-13503783ef8d
 md"""
-*Number of stop-word candidates to review* $(@bind top_n confirm(Slider(20:500, default = 25, show_value = true)))
+*Number of stop-word candidates to review* $(@bind top_n confirm(Slider(20:500, default = 100, show_value = true)))
 """
 
 # ╔═╡ c1a7755b-c100-49ec-9a20-5b34ebe7a7f1
