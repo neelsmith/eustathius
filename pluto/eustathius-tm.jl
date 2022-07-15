@@ -70,6 +70,11 @@ md"""
 *Computing models for **$(n) topics**, computed with up to **$(iters) iterations**.*
 """
 
+# ╔═╡ 1c306e50-ec4c-4201-ba25-e3c6d2f3a633
+md"""!!! note "Size of corpus"
+    Choose `0` to include all comments in the corpus; otherwise, set the number of passages to model.
+"""
+
 # ╔═╡ ff168b8e-84b4-4b7d-9dfa-9ef48f89747d
 md"""
 !!! note "Results: fCTM algorithm"
@@ -95,12 +100,24 @@ url = "https://raw.githubusercontent.com/neelsmith/eustathius/main/cex/bk21.cex"
 # ╔═╡ 005fba72-a05f-4de0-996b-5187b6d992b2
 corpus = fromcex(url, CitableTextCorpus, UrlReader)
 
+# ╔═╡ dbf8e673-a705-4dd0-a5ba-23e28a2065a9
+md"""*Comments to include*: $(@bind n_psgs confirm(Slider(0:length(corpus.passages), default=10, show_value = true))) 
+"""
+
+# ╔═╡ 1f659cb3-846a-4104-a602-7aab315dc050
+normalized = map(corpus) do rawpsg
+	CitablePassage(rawpsg.urn, lowercase(rawpsg.text))
+end |> CitableTextCorpus
+
 # ╔═╡ 65240de4-2af4-45ef-834c-df6bc21c9874
 ortho  = literaryGreek()
 
 # ╔═╡ 08028ea4-725e-4b74-8689-2613024f94d8
 # ╠═╡ show_logs = false
-tmc = tmcorpus(corpus, ortho)
+tmc = begin
+	selectedcorpus = n_psgs == 0 ? normalized : CitableTextCorpus(normalized.passages[1:n_psgs])
+	tmcorpus(selectedcorpus, ortho)
+end
 
 # ╔═╡ 02290f23-b89b-49f9-8096-99f40017f01a
 begin
@@ -137,6 +154,8 @@ scatter(reduced[:,1], reduced[:,2])
 # ╟─a24725e3-182b-4517-97da-33920b4fde27
 # ╟─34b24086-6510-4915-a039-31685a4c00a1
 # ╟─c67e13cc-e823-4052-a04c-6916e7649f0a
+# ╟─1c306e50-ec4c-4201-ba25-e3c6d2f3a633
+# ╟─dbf8e673-a705-4dd0-a5ba-23e28a2065a9
 # ╟─ff168b8e-84b4-4b7d-9dfa-9ef48f89747d
 # ╟─02290f23-b89b-49f9-8096-99f40017f01a
 # ╟─39a33cee-b384-4a5c-bfd6-1c66d3c27956
@@ -147,6 +166,7 @@ scatter(reduced[:,1], reduced[:,2])
 # ╟─08028ea4-725e-4b74-8689-2613024f94d8
 # ╟─48b10dd6-f1c8-424e-acfd-b67292620977
 # ╟─005fba72-a05f-4de0-996b-5187b6d992b2
+# ╟─1f659cb3-846a-4104-a602-7aab315dc050
 # ╟─65240de4-2af4-45ef-834c-df6bc21c9874
 # ╟─93e85656-ff97-44b2-b93e-8e6aef044d46
 # ╟─05198d19-b82c-4b79-ba5d-676adf4958fa
