@@ -35,14 +35,14 @@ function debrillify(s, n = bknum)
     nohardcopyjunk = stripfakehierarchy(no_ms)
     orthofied = fixorth(nohardcopyjunk)
     titled = replace(orthofied, "head" => "title")
-    citeopen = replace(titled, "<ref><hi rend=\"bold\">(v. " => "</comment>\n\n<comment>\n<ref>$(n).")
+    citeopen = replace(titled, r"<ref><hi rend=\"bold\">\(v.[\s]*" => "</comment>\n\n<comment>\n<ref>$(n).")
     cited = replace(citeopen, ")</hi></ref>" => "</ref>")
 
     opener = replace(cited, "</title>" => "</title>\n<comment>")
     closer = replace(opener, "</book>" => "</comment>\n\n</book>")
 
     wawre = r"<hi rend=\"overline\">([^>]+)</hi>"
-    replace(closer, wawre => s"<rs type=\"waw\">\1</rs>")
+    replace(closer, wawre => s"<rs type=\"waw\">\1</rs> ")
 end
 
 
@@ -51,7 +51,7 @@ function writebook(n)
     f = "xmlbybook/bk$(bknum).xml"
     raw = read(f) |> String
     debrillified = debrillify(raw)
-    outfile = "books/bk$(n).xml"
+    outfile = "debrillified/bk$(n).xml"
     open(outfile,"w") do io
         write(io, debrillified)
     end

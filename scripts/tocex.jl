@@ -27,7 +27,8 @@ function simpletext(n::EzXML.Node, accum = "")
 		end
 				
     else
-        throw(DomainError("Unrecognized node type for node $(n.type)"))
+        #throw(DomainError("Unrecognized node type for node $(n.type)"))
+        @warn("Unrecognized node type for node $(n.type)")
 	end
 	catted = join(rslts," ")
     replace(catted, "\n" => " ") |> strip
@@ -48,15 +49,20 @@ function bookcex(nodelist, bk = 21)
 end
 
 
+function writebook(n)
 
-
-f = "books/bk21.xml"
-greektext = read(f) |> parsexml |> root
-bk21comments = findall("//comment", greektext)
-cex = bookcex(bk21comments)
-outfile = "cex/bk21.cex"
-open(outfile,"w") do io
-    write(io, "#!ctsdata\n" * cex)
+    f = "debrillified/bk$(n).xml"
+    greektext = read(f) |> parsexml |> root
+    allcomments = findall("//comment", greektext)
+    cex = bookcex(allcomments, n)
+    outfile = "cex/bk$(n).cex"
+    open(outfile,"w") do io
+        write(io, "#!ctsdata\n" * cex)
+    end
 end
 
 
+for i in 1:24
+    @info("Writing CEX $(i)")
+    writebook(i)
+end
