@@ -58,5 +58,6 @@ function writebook(n)
 end
 
 for i in 1:24
+    @info("Writing book $(i)")
     writebook(i)
 end
