@@ -228,25 +228,6 @@ begin
 	join(rows, "\n") |> Markdown.parse
 end
 
-# ╔═╡ 93e85656-ff97-44b2-b93e-8e6aef044d46
-md"""
-
-!!! note "Computing results"
-"""
-
-# ╔═╡ 05198d19-b82c-4b79-ba5d-676adf4958fa
-rescale(A; dims=1) = (A .- mean(A, dims=dims)) ./ max.(std(A, dims=dims), eps())
-
-# ╔═╡ 92166f58-0ce5-4434-9567-7a3e8375570a
-rescaled = rescale(model.beta, dims=1);
-
-# ╔═╡ e2be100d-debe-4d34-95d6-2e9c18b34193
-# ╠═╡ show_logs = false
-reduced = tsne(transpose(rescaled))
-
-# ╔═╡ df4681eb-ce41-4676-b54d-c88ae23ab680
-scatter(reduced[:,1], reduced[:,2])
-
 # ╔═╡ Cell order:
 # ╟─ccbe499f-409b-4383-8e79-599a31d917d7
 # ╟─7df5ee6f-4998-4856-8c36-5ffe29be9be1
@@ -264,19 +245,14 @@ scatter(reduced[:,1], reduced[:,2])
 # ╟─39a33cee-b384-4a5c-bfd6-1c66d3c27956
 # ╟─54d1fe06-1ce6-4235-b89e-cb9236b0406d
 # ╟─d430eb4b-c9df-4e5a-a9c1-5b426a01eabc
-# ╠═df4681eb-ce41-4676-b54d-c88ae23ab680
 # ╟─2a7a5ebf-f933-4db8-88b9-adcd8c4a1b64
 # ╟─ae80ab9b-b002-4a38-a4a4-cca9e3284460
 # ╟─a5d8aad0-15dd-4d50-8b58-15e604c6424f
 # ╟─831ef9d5-e70b-4b06-a250-b7cba1b12337
 # ╟─23b4c746-d640-4be8-84dc-503b3d081d1f
-# ╠═1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
-# ╠═08028ea4-725e-4b74-8689-2613024f94d8
+# ╟─1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
+# ╟─08028ea4-725e-4b74-8689-2613024f94d8
 # ╠═48b10dd6-f1c8-424e-acfd-b67292620977
 # ╟─005fba72-a05f-4de0-996b-5187b6d992b2
 # ╟─1f659cb3-846a-4104-a602-7aab315dc050
 # ╟─65240de4-2af4-45ef-834c-df6bc21c9874
-# ╟─93e85656-ff97-44b2-b93e-8e6aef044d46
-# ╟─05198d19-b82c-4b79-ba5d-676adf4958fa
-# ╠═92166f58-0ce5-4434-9567-7a3e8375570a
-# ╠═e2be100d-debe-4d34-95d6-2e9c18b34193
