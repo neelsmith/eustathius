@@ -20,7 +20,7 @@ function stripfakehierarchy(s)
     noparas = replace(nodivs, r"</?p>" => "")
     nolineopen = replace(noparas, r"<l[^>]+>" => "")
     nolines = replace(nolineopen, "</l>" => "")
-    replace(nolines, r"\s+\|\s*" => "")
+    replace(nolines, r"\s*\|\s*" => "")
 end 
 
 function fixorth(s)
@@ -50,7 +50,7 @@ end
 function writebook(n)
     f = "xmlbybook/bk$(bknum).xml"
     raw = read(f) |> String
-    debrillified = debrillify(raw)
+    debrillified = debrillify(raw, n)
     outfile = "debrillified/bk$(n).xml"
     open(outfile,"w") do io
         write(io, debrillified)
