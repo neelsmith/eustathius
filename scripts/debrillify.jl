@@ -42,7 +42,8 @@ function debrillify(s, n = bknum)
     closer = replace(opener, "</book>" => "</comment>\n\n</book>")
 
     wawre = r"<hi rend=\"overline\">([^>]+)</hi>"
-    replace(closer, wawre => s"<rs type=\"waw\">\1</rs> ")
+    waw = replace(closer, wawre => s"<rs type=\"waw\">\1</rs> ")
+    tidierws = replace(waw, r"[\t ]+" => " ")
 end
 
 
