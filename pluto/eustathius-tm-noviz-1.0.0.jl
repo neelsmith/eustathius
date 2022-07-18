@@ -67,6 +67,13 @@ md"""
 # Topic modeling tokens in Eustathius
 """
 
+# ╔═╡ bb1989a8-d29b-4425-b0c2-79528ae421ff
+md"""
+Initial downloading and tokenizing the entire corpus is slow.
+
+After that, creating a topic model is faster or slower depending on the number of comments you choose to model.
+"""
+
 # ╔═╡ a24725e3-182b-4517-97da-33920b4fde27
 md"""
 !!! note "Settings for model"
@@ -127,11 +134,15 @@ md"""
 !!! note "Configuration and loading data"
 """
 
-# ╔═╡ 48b10dd6-f1c8-424e-acfd-b67292620977
-url = "https://raw.githubusercontent.com/neelsmith/eustathius/main/cex/bk21.cex"
-
 # ╔═╡ 005fba72-a05f-4de0-996b-5187b6d992b2
-corpus = fromcex(url, CitableTextCorpus, UrlReader)
+corpus = begin
+	allpsgs = CitablePassage[]
+	for i in 1:24
+		url = "https://raw.githubusercontent.com/neelsmith/eustathius/main/cex/bk$(i).cex"
+		append!(allpsgs, fromcex(url, CitableTextCorpus, UrlReader).passages)
+	end
+	CitableTextCorpus(allpsgs)
+end
 
 # ╔═╡ dbf8e673-a705-4dd0-a5ba-23e28a2065a9
 md"""*Comments to include*: $(@bind n_psgs confirm(Slider(0:length(corpus.passages), default=10, show_value = true))) 
@@ -232,6 +243,7 @@ end
 # ╟─ccbe499f-409b-4383-8e79-599a31d917d7
 # ╟─7df5ee6f-4998-4856-8c36-5ffe29be9be1
 # ╟─a54a1bb6-fd70-11ec-2886-cdc4fb2e0c98
+# ╟─bb1989a8-d29b-4425-b0c2-79528ae421ff
 # ╟─a24725e3-182b-4517-97da-33920b4fde27
 # ╟─34b24086-6510-4915-a039-31685a4c00a1
 # ╟─88c105d9-471d-48c7-9661-13503783ef8d
@@ -252,7 +264,6 @@ end
 # ╟─23b4c746-d640-4be8-84dc-503b3d081d1f
 # ╟─1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
 # ╟─08028ea4-725e-4b74-8689-2613024f94d8
-# ╠═48b10dd6-f1c8-424e-acfd-b67292620977
 # ╟─005fba72-a05f-4de0-996b-5187b6d992b2
 # ╟─1f659cb3-846a-4104-a602-7aab315dc050
 # ╟─65240de4-2af4-45ef-834c-df6bc21c9874
