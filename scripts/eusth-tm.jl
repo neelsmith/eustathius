@@ -2,15 +2,16 @@ using Pkg
 Pkg.add(url = "https://github.com/neelsmith/CitableCorpusAnalysis.jl")
 Pkg.add(url = "https://github.com/neelsmith/Kanones.jl")
 using CitableText, CitableCorpus, CitableBase
-using Kanones, CitableParserBuilder
+using Kanones
+using CitableParserBuilder
 using CitableCorpusAnalysis
 using Orthography, PolytonicGreek
 using Downloads
+using ProgressLogging
 
 ortho = literaryGreek()
 allpsgs = CitablePassage[]
-using ProgressLogging
-@progress for i in 21:21 #1:24
+@progress for i in 1:24
     url = "https://raw.githubusercontent.com/neelsmith/eustathius/main/cex/bk$(i).cex"
     append!(allpsgs, fromcex(url, CitableTextCorpus, UrlReader).passages)
 end
@@ -19,15 +20,14 @@ normalized = map(corpus) do rawpsg
 	CitablePassage(rawpsg.urn, knormal(rawpsg.text))
 end |> CitableTextCorpus
 
-#morphurl = "http://www.homermultitext.org/morphology/morphology-current.csv"
-# morphfile = Downloads.download(morphurl)
+lsjlemms = Kanones.lsjdict()
+lsjxlemms =  Kanones.lsjxdict()
+morphurl = "http://www.homermultitext.org/morphology/morphology-current.csv"
+morphfile = Downloads.download(morphurl)
 
-morphfile = "/Users/neelsmith/Desktop/summer22/sandbox/morphology-nohdr.csv"
+#morphfile = "/Users/neelsmith/Desktop/summer22/sandbox/morphology-nohdr.csv"
+morphfile = "/Users/mid/Desktop/morphology-current-nohdr.csv"
 parser = dfParser(morphfile)
-
-# acorp = AnalyticalCorpus(normalized, ortho, parser)
-#vocab = vocabulary(acorp)
-
 
 alltokens = tokenize(normalized, ortho)
 tkns = filter(alltokens) do t
@@ -38,8 +38,6 @@ corpvocab = map(tkns) do tknpr
 end |> unique
 
 
-lsjlemms = Kanones.lsjdict()
-lsjxlemms =  Kanones.lsjxdict()
 lemmatized = []
 for (i, wd) in enumerate(corpvocab)
     if (i % 100) == 0
@@ -98,10 +96,12 @@ sort!(lemmacounts, by = pr -> pr[2], rev = true)
 
 
 lemm_passages  = []
-for tpair in tkns
+for (i, tpair) in enumerate(tkns)
     urn = tpair[1].urn
     lemm = filter(pr -> pr[1] == tpair[1].text, lemmalabels)[1][2]
-    println(lemm, " -- ", urn)
+    if i % 100 == 0
+        @info("labelling $(i) / $(length(tkns))")
+    end
     push!(lemm_passages, CitablePassage(urn, lemm))
 end 
 lemm_edition = CitableTextCorpus(lemm_passages)
