@@ -2,7 +2,7 @@ using EzXML
 using PolytonicGreek, Orthography
 using CitableText, CitableCorpus
 
-bknum = 1
+#bknum = 1
 o = literaryGreek()
 
 
@@ -20,7 +20,8 @@ function stripfakehierarchy(s)
     noparas = replace(nodivs, r"</?p>" => "")
     nolineopen = replace(noparas, r"<l[^>]+>" => "")
     nolines = replace(nolineopen, "</l>" => "")
-    replace(nolines, r"\s*\|\s*" => "")
+    #replace(nolines, r"\s*\|\s*" => "")
+    replace(nolines, "|" => "")
 end 
 
 function fixorth(s)
@@ -30,7 +31,12 @@ function fixorth(s)
     
 end
 
-function debrillify(s, n = bknum)
+"""Remove metadata from Brill: quotation marks, brackets."""
+function tokensafe(s)
+    replace(s, r"[«»\[\]]" => "")
+end
+
+function debrillify(s, n )
     no_ms = stripmilestone(s)
     nohardcopyjunk = stripfakehierarchy(no_ms)
     orthofied = fixorth(nohardcopyjunk)
@@ -44,13 +50,15 @@ function debrillify(s, n = bknum)
     wawre = r"<hi rend=\"overline\">([^>]+)</hi>"
     waw = replace(closer, wawre => s"<rs type=\"waw\">\1</rs> ")
     tidierws = replace(waw, r"[\t ]+" => " ")
+    tokensafe(tidierws)
 end
 
 
 
 function writebook(n)
-    f = "xmlbybook/bk$(bknum).xml"
+    f = "xmlbybook/bk$(n).xml"
     raw = read(f) |> String
+    @info("Debrillifying book $(n)...")
     debrillified = debrillify(raw, n)
     outfile = "debrillified/bk$(n).xml"
     open(outfile,"w") do io

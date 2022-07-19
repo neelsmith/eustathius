@@ -25,7 +25,9 @@ function simpletext(n::EzXML.Node, accum = "")
 		if !isempty(tidier)
 			push!(rslts, accum * tidier)
 		end
-				
+			
+    elseif n.type == EzXML.COMMENT_NODE
+        # Silently drop.
     else
         #throw(DomainError("Unrecognized node type for node $(n.type)"))
         @warn("Unrecognized node type for node $(n.type)")
@@ -49,7 +51,7 @@ function bookcex(nodelist, bk = 21)
 end
 
 
-function writebook(n)
+function writebookcex(n)
 
     f = "debrillified/bk$(n).xml"
     greektext = read(f) |> parsexml |> root
@@ -64,5 +66,9 @@ end
 
 for i in 1:24
     @info("Writing CEX $(i)")
-    writebook(i)
+    writebookcex(i)
 end
+
+
+
+#writebookcex(21)
