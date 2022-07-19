@@ -116,7 +116,60 @@ for ref in canonicalreff
 end
 
 lemmatizedcorp = CitableTextCorpus(lemmatizedcanon)
-#selectedcorpus = n_psgs == 0 ? normalized : CitableTextCorpus(normalized.passages[1:n_psgs])
-# tmc =	tmcorpus(selectedcorpus, ortho)
-#tmc =	tmcorpus(normalized, ortho)
 
+
+open("eusth-lemmatized.cex", "w") do io
+    write(io, cex(lemmatizedcorp))
+end
+
+
+
+
+
+
+
+
+
+import Orthography: tokenize
+import Orthography: codepoints
+import Orthography: tokentypes
+
+"An orthographic system for a basic alphabetic subset of the ASCII characater set."
+struct WSTokenizer <: OrthographicSystem
+end
+
+OrthographyTrait(::Type{WSTokenizer}) = IsOrthographicSystem()
+
+"""Implement tokentypes function for SimpleAscii.
+"""
+function tokentypes(ortho::WSTokenizer)
+    [LexicalToken()]
+end
+
+
+"""Implement codepoints function for SimpleAscii.
+"""
+function codepoints(ortho::WSTokenizer)
+    #ortho.codepoints
+    []
+end
+
+
+
+
+
+#####################################
+#=
+tmc =  tmcorpus(lemmatizedcorp, orh)
+
+
+using TopicModelsVB
+n = 5
+iters = 250
+model = LDA(tmc, n)
+train!(model, iter=iters)
+
+terms_n = 15
+showtopics(model, cols = n, terms_n)
+
+=#
