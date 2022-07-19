@@ -2,6 +2,7 @@
 CitableBase = "d6f014bd-995c-41bd-9893-703339864534"
 CitableCorpus = "cf5ac11a-93ef-4a1a-97a3-f6af101603b5"
 CitableCorpusAnalysis = "c8e18afb-d0b9-4a73-9e55-d0fe0b502904"
+CitableParserBuilder = "c834cb9d-35b9-419a-8ff8-ecaeea9e2a2a"
 CitableText = "41e66566-473b-49d4-85b7-da83b66615d8"
 EzXML = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
 Kanones = "107500f9-53d4-4696-8485-0747242ad8bc"
