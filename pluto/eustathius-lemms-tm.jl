@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.8
+# v0.19.9
 
 using Markdown
 using InteractiveUtils
@@ -19,47 +19,35 @@ end
 begin
 	using Pkg
 	Pkg.add(url="https://github.com/neelsmith/CitableCorpusAnalysis.jl")
-	using CitableCorpusAnalysis
-
 	Pkg.add("TopicModelsVB")
-	using TopicModelsVB
+
+	Pkg.add("SplitApplyCombine")
 
 	Pkg.add("CitableCorpus")
 	Pkg.add("CitableText")
 	Pkg.add("CitableBase")
-	using CitableBase, CitableText, CitableCorpus
 
 	Pkg.add("Orthography")	
-	using Orthography
-
 	Pkg.add("PolytonicGreek")
-	using PolytonicGreek
-
-
-	Pkg.add("TSne")
-	using TSne
 	
-	Pkg.add("Plots")
-	using Plots
+	using CitableCorpusAnalysis
+	using TopicModelsVB
 
-	Pkg.add("Statistics")
-	using Statistics
-
-	Pkg.add("SplitApplyCombine")
 	using SplitApplyCombine
 
-	Pkg.add("Kanones")
-	using Kanones
-	
+	using CitableBase, CitableText, CitableCorpus
+
+	using Orthography, PolytonicGreek
+
 	Pkg.add("PlutoUI")
 	using PlutoUI
-
+	
 	md"""(*Unhide this cell to see or modify your Julia environment*) """
 end
 
 # ╔═╡ 7df5ee6f-4998-4856-8c36-5ffe29be9be1
 md"""
-*Notebook version*: **1.0.0**
+*Notebook version*: **1.0.1**
 """
 
 # ╔═╡ a54a1bb6-fd70-11ec-2886-cdc4fb2e0c98
@@ -99,8 +87,8 @@ md"""
 """
 
 # ╔═╡ 1c306e50-ec4c-4201-ba25-e3c6d2f3a633
-md"""!!! note "Size of corpus"
-    Choose `0` to include *all* passages in the corpus; otherwise, set a number of passages to model.
+md"""!!! note "Size of corpus to model"
+    Set a number of passages to model.
 """
 
 # ╔═╡ ff168b8e-84b4-4b7d-9dfa-9ef48f89747d
@@ -135,7 +123,7 @@ md"""
 """
 
 # ╔═╡ 97962f36-db0c-44e5-aa21-1590a98e4979
-eusturl = "https://www.homermultitext.org/eustathius/lemmatized_edition.cex"
+eusturl = "https://www.homermultitext.org/eustathius/lemmatext_ed.cex"
 
 # ╔═╡ 0640bd11-7107-492e-8cfb-f629b6db2caf
 corpus = fromcex(eusturl, CitableTextCorpus, UrlReader)
@@ -144,39 +132,16 @@ corpus = fromcex(eusturl, CitableTextCorpus, UrlReader)
 md"""*Comments to include*: $(@bind n_psgs confirm(Slider(0:length(corpus.passages), default=10, show_value = true))) 
 """
 
-# ╔═╡ 005fba72-a05f-4de0-996b-5187b6d992b2
-corpusx = begin
-	allpsgs = CitablePassage[]
-	for i in 1:24
-		url = "https://raw.githubusercontent.com/neelsmith/eustathius/main/cex/bk$(i).cex"
-		append!(allpsgs, fromcex(url, CitableTextCorpus, UrlReader).passages)
-	end
-	CitableTextCorpus(allpsgs)
-end
-
-# ╔═╡ 1f659cb3-846a-4104-a602-7aab315dc050
-normalized = map(corpus) do rawpsg
-	CitablePassage(rawpsg.urn, knormal(rawpsg.text))
-end |> CitableTextCorpus
-
 # ╔═╡ 65240de4-2af4-45ef-834c-df6bc21c9874
 ortho  = literaryGreek()
 
 # ╔═╡ 1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
-tkns = begin
-	alltokens = tokenize(normalized, ortho)
-	filter(alltokens) do t
-		t[2] == LexicalToken()
-	end
-end
+tkns = tokenize(corpus, ortho)
 
 # ╔═╡ 831ef9d5-e70b-4b06-a250-b7cba1b12337
  sorted =  begin
- 	
-	lex = filter(tkns) do tpair
-		tpair[2] == LexicalToken()
-	end
- 	termdict = map(lex) do t
+
+ 	termdict = map(tkns) do t
        t[1].text |> lowercase
 	end |> group
 	counts = []
@@ -209,7 +174,7 @@ end
 # ╔═╡ 08028ea4-725e-4b74-8689-2613024f94d8
 # ╠═╡ show_logs = false
 tmc = begin
-	selectedcorpus = n_psgs == 0 ? normalized : CitableTextCorpus(normalized.passages[1:n_psgs])
+	selectedcorpus = n_psgs == 0 ? corpus : CitableTextCorpus(corpus.passages[1:n_psgs])
 	tmcorpus(selectedcorpus, ortho)
 end
 
@@ -252,9 +217,9 @@ end
 # ╟─bb1989a8-d29b-4425-b0c2-79528ae421ff
 # ╟─a24725e3-182b-4517-97da-33920b4fde27
 # ╟─34b24086-6510-4915-a039-31685a4c00a1
-# ╠═88c105d9-471d-48c7-9661-13503783ef8d
+# ╟─88c105d9-471d-48c7-9661-13503783ef8d
 # ╟─c1a7755b-c100-49ec-9a20-5b34ebe7a7f1
-# ╠═9d83f24b-b4bb-452c-8a77-72591a2edb83
+# ╟─9d83f24b-b4bb-452c-8a77-72591a2edb83
 # ╟─c67e13cc-e823-4052-a04c-6916e7649f0a
 # ╟─1c306e50-ec4c-4201-ba25-e3c6d2f3a633
 # ╟─dbf8e673-a705-4dd0-a5ba-23e28a2065a9
@@ -268,10 +233,8 @@ end
 # ╟─a5d8aad0-15dd-4d50-8b58-15e604c6424f
 # ╟─831ef9d5-e70b-4b06-a250-b7cba1b12337
 # ╟─23b4c746-d640-4be8-84dc-503b3d081d1f
-# ╠═97962f36-db0c-44e5-aa21-1590a98e4979
+# ╟─97962f36-db0c-44e5-aa21-1590a98e4979
 # ╟─1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
 # ╟─08028ea4-725e-4b74-8689-2613024f94d8
-# ╠═0640bd11-7107-492e-8cfb-f629b6db2caf
-# ╠═005fba72-a05f-4de0-996b-5187b6d992b2
-# ╟─1f659cb3-846a-4104-a602-7aab315dc050
+# ╟─0640bd11-7107-492e-8cfb-f629b6db2caf
 # ╟─65240de4-2af4-45ef-834c-df6bc21c9874
