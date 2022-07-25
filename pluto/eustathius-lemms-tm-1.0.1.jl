@@ -47,7 +47,7 @@ end
 
 # ╔═╡ 7df5ee6f-4998-4856-8c36-5ffe29be9be1
 md"""
-*Notebook version*: **1.0.1**
+*Notebook version*: **1.0.2**
 """
 
 # ╔═╡ a54a1bb6-fd70-11ec-2886-cdc4fb2e0c98
@@ -68,17 +68,7 @@ md"""
 """
 
 # ╔═╡ 34b24086-6510-4915-a039-31685a4c00a1
-md"""*Number of topics*: $(@bind n confirm(Slider(2:20, default=12, show_value = true))) *Iterations* $(@bind iters confirm(Slider(100:50:1000, default=200, show_value = true)))
-"""
-
-# ╔═╡ 88c105d9-471d-48c7-9661-13503783ef8d
-md"""
-*Number of stop-word candidates to review* $(@bind top_n confirm(Slider(20:500, default = 100, show_value = true)))
-"""
-
-# ╔═╡ c1a7755b-c100-49ec-9a20-5b34ebe7a7f1
-md"""
-*Any **unchecked** terms will be treated as stop words.  **Check** any terms to include in the topic model.*
+md"""*Number of topics*: $(@bind n confirm(Slider(2:50, default=12, show_value = true))) *Iterations* $(@bind iters confirm(Slider(100:50:1000, default=200, show_value = true)))
 """
 
 # ╔═╡ c67e13cc-e823-4052-a04c-6916e7649f0a
@@ -93,7 +83,7 @@ md"""!!! note "Size of corpus to model"
 
 # ╔═╡ ff168b8e-84b4-4b7d-9dfa-9ef48f89747d
 md"""
-!!! note "Results: fCTM algorithm"
+!!! note "Results: LDA algorithm"
 """
 
 # ╔═╡ 39a33cee-b384-4a5c-bfd6-1c66d3c27956
@@ -111,16 +101,17 @@ html"""
 <i>You can ignore content below here</i>
 """
 
-# ╔═╡ ae80ab9b-b002-4a38-a4a4-cca9e3284460
-md"""
-!!! note "The lexicon"
-"""
-
 # ╔═╡ 23b4c746-d640-4be8-84dc-503b3d081d1f
 md"""
 
 !!! note "Configuration and loading data"
 """
+
+# ╔═╡ 65240de4-2af4-45ef-834c-df6bc21c9874
+ortho  = literaryGreek()
+
+# ╔═╡ 283c4b81-1a1a-4204-a992-201f898c3934
+stopwords = readlines("stopwords.txt")
 
 # ╔═╡ 97962f36-db0c-44e5-aa21-1590a98e4979
 eusturl = "https://www.homermultitext.org/eustathius/lemmatext_ed.cex"
@@ -132,61 +123,41 @@ corpus = fromcex(eusturl, CitableTextCorpus, UrlReader)
 md"""*Comments to include*: $(@bind n_psgs confirm(Slider(0:length(corpus.passages), default=10, show_value = true))) 
 """
 
-# ╔═╡ 65240de4-2af4-45ef-834c-df6bc21c9874
-ortho  = literaryGreek()
+# ╔═╡ 38165986-a1cc-4eeb-aa81-da270455972d
+md"""
+!!! note "Tokenize and filter tokens by stopwords"
+"""
 
-# ╔═╡ 1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
-tkns = tokenize(corpus, ortho)
-
-# ╔═╡ 831ef9d5-e70b-4b06-a250-b7cba1b12337
- sorted =  begin
-
- 	termdict = map(tkns) do t
-       t[1].text |> lowercase
-	end |> group
-	counts = []
-	for k in keys(termdict)
-		push!(counts, (k, length(termdict[k])))
+# ╔═╡ 9097c25a-c906-4dce-b805-83b10c4d3973
+filtered = begin
+	psgs =  CitablePassage[]
+	for p in corpus.passages
+		psg_words = split(p.text)
+		elided = filter(psg_words) do wd
+			! (wd in stopwords)
+		end
+		push!(psgs, CitablePassage(p.urn, join(elided, " ")))
 	end
-	sort(counts, by = pr -> pr[2], rev = true)
- end
-
-# ╔═╡ 9d83f24b-b4bb-452c-8a77-72591a2edb83
-begin
-	most_freq = map(sorted[1:top_n]) do pr
-		pr[1]
-	end
-	
-	@bind keepers MultiCheckBox(most_freq)
-end
-
-# ╔═╡ a5d8aad0-15dd-4d50-8b58-15e604c6424f
-stopwords = begin
-	stopterms = map(sorted[1:top_n]) do termpair
-		termpair[1]
-	end
-	finalstops = filter(stopterms) do stopterm
-		! (stopterm in keepers)
-	end
-	finalstops
+	psgs
 end
 
 # ╔═╡ 08028ea4-725e-4b74-8689-2613024f94d8
 # ╠═╡ show_logs = false
 tmc = begin
-	selectedcorpus = n_psgs == 0 ? corpus : CitableTextCorpus(corpus.passages[1:n_psgs])
+	selectedcorpus = n_psgs == 0 ? corpus : CitableTextCorpus(filtered[1:n_psgs])
 	tmcorpus(selectedcorpus, ortho)
 end
 
 # ╔═╡ 02290f23-b89b-49f9-8096-99f40017f01a
 begin
-	model = fCTM(tmc, n)
-	train!(model, tol = 0, checkelbo = Inf)
+	model = LDA(tmc, n)
+	train!(model, tol = 0, iter=iters, checkelbo = Inf)
 	model
 end
 
 # ╔═╡ d430eb4b-c9df-4e5a-a9c1-5b426a01eabc
 begin
+	
 	rows = []
 	hdrs = ["Topic"]
 	for hidx in 1:terms_n
@@ -208,6 +179,7 @@ begin
 		push!(rows, "| " * join(colvals, " | ") * " |" )
     end
 	join(rows, "\n") |> Markdown.parse
+	
 end
 
 # ╔═╡ Cell order:
@@ -217,9 +189,6 @@ end
 # ╟─bb1989a8-d29b-4425-b0c2-79528ae421ff
 # ╟─a24725e3-182b-4517-97da-33920b4fde27
 # ╟─34b24086-6510-4915-a039-31685a4c00a1
-# ╟─88c105d9-471d-48c7-9661-13503783ef8d
-# ╟─c1a7755b-c100-49ec-9a20-5b34ebe7a7f1
-# ╟─9d83f24b-b4bb-452c-8a77-72591a2edb83
 # ╟─c67e13cc-e823-4052-a04c-6916e7649f0a
 # ╟─1c306e50-ec4c-4201-ba25-e3c6d2f3a633
 # ╟─dbf8e673-a705-4dd0-a5ba-23e28a2065a9
@@ -229,12 +198,11 @@ end
 # ╟─54d1fe06-1ce6-4235-b89e-cb9236b0406d
 # ╟─d430eb4b-c9df-4e5a-a9c1-5b426a01eabc
 # ╟─2a7a5ebf-f933-4db8-88b9-adcd8c4a1b64
-# ╟─ae80ab9b-b002-4a38-a4a4-cca9e3284460
-# ╟─a5d8aad0-15dd-4d50-8b58-15e604c6424f
-# ╟─831ef9d5-e70b-4b06-a250-b7cba1b12337
 # ╟─23b4c746-d640-4be8-84dc-503b3d081d1f
-# ╟─97962f36-db0c-44e5-aa21-1590a98e4979
-# ╟─1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
-# ╟─08028ea4-725e-4b74-8689-2613024f94d8
-# ╟─0640bd11-7107-492e-8cfb-f629b6db2caf
 # ╟─65240de4-2af4-45ef-834c-df6bc21c9874
+# ╠═283c4b81-1a1a-4204-a992-201f898c3934
+# ╟─97962f36-db0c-44e5-aa21-1590a98e4979
+# ╟─0640bd11-7107-492e-8cfb-f629b6db2caf
+# ╟─38165986-a1cc-4eeb-aa81-da270455972d
+# ╟─9097c25a-c906-4dce-b805-83b10c4d3973
+# ╟─08028ea4-725e-4b74-8689-2613024f94d8
