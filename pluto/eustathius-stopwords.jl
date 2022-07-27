@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.10
 
 using Markdown
 using InteractiveUtils
@@ -18,6 +18,7 @@ end
 # ╠═╡ show_logs = false
 begin
 	using Pkg
+	Pkg.activate(".")
 
 	Pkg.add("CitableCorpus")
 	Pkg.add("CitableText")
