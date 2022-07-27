@@ -44,7 +44,7 @@ end
 
 # ╔═╡ 7df5ee6f-4998-4856-8c36-5ffe29be9be1
 md"""
-*Notebook version*: **1.0.0**
+*Notebook version*: **1.0.1**
 """
 
 # ╔═╡ a54a1bb6-fd70-11ec-2886-cdc4fb2e0c98
@@ -90,10 +90,7 @@ eusturl = "https://www.homermultitext.org/eustathius/lemmatext_ed.cex"
 ortho  = literaryGreek()
 
 # ╔═╡ 005fba72-a05f-4de0-996b-5187b6d992b2
-corpus = begin
-	dummy = fromcex(eusturl, CitableTextCorpus,UrlReader)
-	CitableTextCorpus(dummy.passages[1:1])
-end
+corpus = fromcex(eusturl, CitableTextCorpus,UrlReader)
 
 
 # ╔═╡ 1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
@@ -157,5 +154,5 @@ end
 # ╟─23b4c746-d640-4be8-84dc-503b3d081d1f
 # ╟─3d4c98bc-bd83-48c7-9537-a98a5f851ac3
 # ╟─65240de4-2af4-45ef-834c-df6bc21c9874
-# ╟─005fba72-a05f-4de0-996b-5187b6d992b2
+# ╠═005fba72-a05f-4de0-996b-5187b6d992b2
 # ╟─1b3b47cc-a64d-48c3-9ff1-7b1ea87239c6
