@@ -47,7 +47,7 @@ end
 
 # ╔═╡ 7df5ee6f-4998-4856-8c36-5ffe29be9be1
 md"""
-*Notebook version*: **1.0.2**
+*Notebook version*: **1.1.0**
 """
 
 # ╔═╡ a54a1bb6-fd70-11ec-2886-cdc4fb2e0c98
@@ -57,7 +57,7 @@ md"""
 
 # ╔═╡ bb1989a8-d29b-4425-b0c2-79528ae421ff
 md"""
-Initial downloading and tokenizing the entire corpus is slow.
+Initial loading of data and libraries takes a little time.
 
 After that, creating a topic model is faster or slower depending on the number of comments you choose to model.
 """
