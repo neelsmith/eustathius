@@ -52,7 +52,7 @@ end
 
 # ╔═╡ 7df5ee6f-4998-4856-8c36-5ffe29be9be1
 md"""
-*Notebook version*: **1.2.0**
+*Notebook version*: **1.3.0**
 """
 
 # ╔═╡ a54a1bb6-fd70-11ec-2886-cdc4fb2e0c98
@@ -92,7 +92,20 @@ md"""
 """
 
 # ╔═╡ 39a33cee-b384-4a5c-bfd6-1c66d3c27956
-md"""## Topic definitions"""
+md"""## Topic definitions
+
+
+
+*Save results to a file named* `topics.txt` $(@bind save Button("Save results"))
+
+"""
+
+# ╔═╡ f62c7327-a808-4fa0-b062-98d0e154420a
+md"""
+!!! warning "Saving overwrites previous files"
+
+    Move or rename any version of `topics.txt` that you want to keep.
+"""
 
 # ╔═╡ 54d1fe06-1ce6-4235-b89e-cb9236b0406d
 md"""
@@ -203,6 +216,27 @@ begin
 	
 end
 
+# ╔═╡ 425d3624-f861-47ae-a1a9-6699c574b483
+topicresults = begin
+	results = []
+	for (r,row) in enumerate(model.topics)
+		colvals = ["Topic $(r)"]
+       	for c in 1:terms_n
+			push!(colvals, model.corp.vocab[model.topics[r][c]])
+		end
+		push!(results, join(colvals, ","))
+    end
+	results
+end
+
+# ╔═╡ e364752b-b8f1-4e6b-8435-82fc99892312
+begin
+	save
+	open("topics.txt","w") do io
+		write(io, join(topicresults,"\n"))
+	end
+end
+
 # ╔═╡ Cell order:
 # ╟─ccbe499f-409b-4383-8e79-599a31d917d7
 # ╟─7df5ee6f-4998-4856-8c36-5ffe29be9be1
@@ -216,8 +250,11 @@ end
 # ╟─ff168b8e-84b4-4b7d-9dfa-9ef48f89747d
 # ╟─02290f23-b89b-49f9-8096-99f40017f01a
 # ╟─39a33cee-b384-4a5c-bfd6-1c66d3c27956
+# ╟─e364752b-b8f1-4e6b-8435-82fc99892312
+# ╟─f62c7327-a808-4fa0-b062-98d0e154420a
 # ╟─54d1fe06-1ce6-4235-b89e-cb9236b0406d
 # ╟─d430eb4b-c9df-4e5a-a9c1-5b426a01eabc
+# ╟─425d3624-f861-47ae-a1a9-6699c574b483
 # ╟─2a7a5ebf-f933-4db8-88b9-adcd8c4a1b64
 # ╟─23b4c746-d640-4be8-84dc-503b3d081d1f
 # ╟─65240de4-2af4-45ef-834c-df6bc21c9874
