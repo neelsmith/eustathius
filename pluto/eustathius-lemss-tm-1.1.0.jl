@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.10
+# v0.19.9
 
 using Markdown
 using InteractiveUtils
@@ -30,6 +30,8 @@ begin
 
 	Pkg.add("Orthography")	
 	Pkg.add("PolytonicGreek")
+
+	Pkg.add("Unicode")
 	
 	using CitableCorpusAnalysis
 	using TopicModelsVB
@@ -40,6 +42,8 @@ begin
 
 	using Orthography, PolytonicGreek
 
+	using Unicode
+
 	Pkg.add("PlutoUI")
 	using PlutoUI
 	
@@ -48,7 +52,7 @@ end
 
 # ╔═╡ 7df5ee6f-4998-4856-8c36-5ffe29be9be1
 md"""
-*Notebook version*: **1.1.0**
+*Notebook version*: **1.2.0**
 """
 
 # ╔═╡ a54a1bb6-fd70-11ec-2886-cdc4fb2e0c98
@@ -112,7 +116,7 @@ md"""
 ortho  = literaryGreek()
 
 # ╔═╡ 283c4b81-1a1a-4204-a992-201f898c3934
-stopwords = readlines("stopwords.txt")
+stopwords = readlines("stopwords.txt") .|> Unicode.normalize
 
 # ╔═╡ 97962f36-db0c-44e5-aa21-1590a98e4979
 eusturl = "https://www.homermultitext.org/eustathius/lemmatext_ed.cex"
@@ -135,12 +139,28 @@ filtered = begin
 	for p in corpus.passages
 		psg_words = split(p.text)
 		elided = filter(psg_words) do wd
-			! (wd in stopwords)
+			! (Unicode.normalize(wd) in stopwords)
 		end
 		push!(psgs, CitablePassage(p.urn, join(elided, " ")))
 	end
 	psgs
 end
+
+# ╔═╡ 000c65ca-26d7-46d4-a4d6-c6af4f6fe9b5
+begin
+	p = corpus.passages[1]
+	pwords = split(p.text)
+	saveem = []
+	for wd in pwords
+		if Unicode.normalize(wd) in stopwords
+			# do nothing
+		else
+			push!(saveem, wd)
+		end
+	end
+	saveem
+end
+
 
 # ╔═╡ 08028ea4-725e-4b74-8689-2613024f94d8
 # ╠═╡ show_logs = false
@@ -201,9 +221,10 @@ end
 # ╟─2a7a5ebf-f933-4db8-88b9-adcd8c4a1b64
 # ╟─23b4c746-d640-4be8-84dc-503b3d081d1f
 # ╟─65240de4-2af4-45ef-834c-df6bc21c9874
-# ╠═283c4b81-1a1a-4204-a992-201f898c3934
+# ╟─283c4b81-1a1a-4204-a992-201f898c3934
 # ╟─97962f36-db0c-44e5-aa21-1590a98e4979
 # ╟─0640bd11-7107-492e-8cfb-f629b6db2caf
 # ╟─38165986-a1cc-4eeb-aa81-da270455972d
 # ╟─9097c25a-c906-4dce-b805-83b10c4d3973
+# ╟─000c65ca-26d7-46d4-a4d6-c6af4f6fe9b5
 # ╟─08028ea4-725e-4b74-8689-2613024f94d8
