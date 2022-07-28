@@ -54,7 +54,7 @@ end
 
 # ╔═╡ 7df5ee6f-4998-4856-8c36-5ffe29be9be1
 md"""
-*Notebook version*: **1.4.0**
+*Notebook version*: **1.5.0**
 """
 
 # ╔═╡ a54a1bb6-fd70-11ec-2886-cdc4fb2e0c98
@@ -84,8 +84,7 @@ md"""
 """
 
 # ╔═╡ 1c306e50-ec4c-4201-ba25-e3c6d2f3a633
-md"""!!! note "Size of corpus to model"
-    Set a number of passages to model.
+md""">Size of corpus to model:
 """
 
 # ╔═╡ ff168b8e-84b4-4b7d-9dfa-9ef48f89747d
@@ -103,12 +102,15 @@ md"""
 
 # ╔═╡ fff66133-5ace-4322-a546-f543d14a4113
 md"""
-!!! note "See documents for topic"
-
-    Choose a topic, and browse the 10 documents with the highest score for that topic
+## See documents for topic
 
 
-*Choose topic to view* $(@bind topicid Select(collect(1:n))) 
+!!! note "Selections"
+
+    Choose a topic by its number in the table above, and the top `n` most highly scored documents for that topic.  Select from the following menu to  browse the `n` documents with the highest score for that topic.
+
+
+*Choose topic to view* $(@bind topicid Select(collect(1:n)))  *Choose number of documents to list* $(@bind topn Select(collect(10:100))) 
 """
 
 # ╔═╡ 2a7a5ebf-f933-4db8-88b9-adcd8c4a1b64
@@ -138,7 +140,7 @@ lemma_ed_url = "https://www.homermultitext.org/eustathius/lemmatext_ed.cex"
 corpus = fromcex(lemma_ed_url, CitableTextCorpus, UrlReader)
 
 # ╔═╡ dbf8e673-a705-4dd0-a5ba-23e28a2065a9
-md"""*Comments to include*: $(@bind n_psgs confirm(Slider(0:length(corpus.passages), default=10, show_value = true))) 
+md"""*Number of passages to include*: $(@bind n_psgs confirm(Slider(0:length(corpus.passages), default=10, show_value = true))) 
 """
 
 # ╔═╡ f3b3a0fd-80fd-4572-9866-99bf2a7cd5d4
@@ -267,7 +269,7 @@ end
 # ╔═╡ 161aa209-8cef-400c-b462-c0599d30c2aa
 topdocids = begin
 	topsies = scoresfortopic(topicid)
-	map(pr -> pr[1], topsies[1:10])
+	map(pr -> pr[1], topsies[1:topn])
 end
 
 # ╔═╡ 23474706-6e13-4061-925a-0cce1f560570
@@ -294,16 +296,36 @@ begin
 	md"""*Choose document to view* : $(@bind docid Select(menux))"""
 end
 
+# ╔═╡ 4a97323a-051d-481a-bde7-1a3a2967ed42
+begin
+	cutoff  = 300 # default number of glyphs to display
+	
+	alltext = fulltext.passages[docid].text
+	allglyphs = eachindex(alltext) |> collect
+	
+	if length(allglyphs) < cutoff
+		#md"""$(alltext)"""
+	else
+			md"""
+	*Length of text to display (characters)* $(@bind numglyphs Slider(100:100:length(allglyphs), default = cutoff, show_value = true))
+	"""
+	end
+
+end
+
 # ╔═╡ 1a822da8-03b1-4284-bf76-9193dda95f98
-md"""$(fulltext.passages[docid].text)"""
-
-# ╔═╡ 4e9a0cce-a285-4a0d-a456-91b5cdeec0ec
-md"""## TBD
-
-- docs scoring high on a given topic: sort docs by score on a column!
-- scores for a doc
-- full-text search?
-"""
+begin
+	#md"""$()"""
+	doctext = fulltext.passages[docid].text
+	docglyphs = eachindex(doctext) |> collect	
+	cvect = []
+	for g in docglyphs[1:numglyphs]
+		push!(cvect, doctext[g])
+	end
+	s = join(cvect) |> string
+	
+	md"""$(s)"""
+end
 
 # ╔═╡ Cell order:
 # ╟─ccbe499f-409b-4383-8e79-599a31d917d7
@@ -323,6 +345,7 @@ md"""## TBD
 # ╟─fff66133-5ace-4322-a546-f543d14a4113
 # ╟─23474706-6e13-4061-925a-0cce1f560570
 # ╟─161aa209-8cef-400c-b462-c0599d30c2aa
+# ╟─4a97323a-051d-481a-bde7-1a3a2967ed42
 # ╟─1a822da8-03b1-4284-bf76-9193dda95f98
 # ╟─2a7a5ebf-f933-4db8-88b9-adcd8c4a1b64
 # ╟─23b4c746-d640-4be8-84dc-503b3d081d1f
@@ -339,4 +362,3 @@ md"""## TBD
 # ╟─5d2ff05f-7ac2-403a-b921-77490889a590
 # ╟─6d15b4df-e03f-4ed7-8b53-46ddc450b3f9
 # ╟─02398d2c-c84b-4e7a-aa22-4b5252a3707f
-# ╟─4e9a0cce-a285-4a0d-a456-91b5cdeec0ec
